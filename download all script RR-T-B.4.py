@@ -9,7 +9,7 @@ USER_FOLDER = os.path.expanduser("~")
 # Mendapatkan hanya dua angka pertama dari versi Blender (misal: "4.2.0" -> "4.2")
 BLENDER_VERSION = ".".join(map(str, bpy.app.version[:2]))
 
-ADDON_DIR = os.path.join(USER_FOLDER, "AppData", "Roaming", "Blender Foundation", "Blender", BLENDER_VERSION, "scripts", "addons", "s_pyc_", "MAIN", "v4",  "B4")
+ADDON_DIR = os.path.join(USER_FOLDER, "AppData", "Roaming", "Blender Foundation", "Blender", BLENDER_VERSION, "scripts", "addons", "s_pyc_", "MAIN", "v4", "B4")
 
 # Pastikan folder tujuan ada, jika tidak maka buat
 if not os.path.exists(ADDON_DIR):
