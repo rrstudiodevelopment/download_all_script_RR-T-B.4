@@ -29,7 +29,7 @@ def check_blender_version():
         show_message_box(f"Blender versi {version_string}", "Blender Detected", 'INFO')
         run_next_functions()
     else:
-        show_message_box(f"Sorry, unsupported for Blender {version_string}", "Error", 'ERROR')
+        show_message_box(f"Sorry, unsupported for Blender {version_string} select the compatible version" , "Error", 'ERROR')
 
 def run_next_functions():
     def remove_readonly(func, path, exc_info):
