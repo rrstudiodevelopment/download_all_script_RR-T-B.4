@@ -67,9 +67,9 @@ def run_next_functions():
     if not os.path.exists(TEMP_DIR):
         os.makedirs(TEMP_DIR, exist_ok=True)
 
-    ENCODED_FOLDER = "UlItVC1CLjRfVjAz"
+    ENCODED_FOLDER = "UlItVC1CLjRfVjA0"
     EXTRACT_FOLDER = os.path.join(TEMP_DIR, base64.b64decode(ENCODED_FOLDER).decode('utf-8'))
-    ENCODED_REPO = "aHR0cHM6Ly9naXRodWIuY29tL3Jyc3R1ZGlvZGV2ZWxvcG1lbnQvUlItVC1CLjRfVjAz"
+    ENCODED_REPO = "aHR0cHM6Ly9naXRodWIuY29tL3Jyc3R1ZGlvZGV2ZWxvcG1lbnQvUlItVC1CLjRfVjA0"
     GITHUB_REPO = base64.b64decode(ENCODED_REPO).decode('utf-8')
 
     def clone_repository():
