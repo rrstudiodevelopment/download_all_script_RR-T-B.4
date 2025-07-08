@@ -106,4 +106,4 @@ def run_next_functions():
         except Exception as e:
             print(f"Gagal menghapus file skrip: {e}")
 
-check_blender_version()
+#check_blender_version()
