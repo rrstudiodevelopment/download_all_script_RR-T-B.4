@@ -9,7 +9,7 @@ import base64
 from io import BytesIO
 
 # === KONFIGURASI (URL DISAMARKAN DENGAN BASE64) ===
-ENCODED_URL = "aHR0cHM6Ly9naXRodWIuY29tL3Jyc3R1ZGlvZGV2ZWxvcG1lbnQvUlItVC1CLjRfVjA0L2FyY2hpdmUvcmVmcy9oZWFkcy9tYWluLnppcA=="
+ENCODED_URL = "aHR0cHM6Ly9naXRodWIuY29tL3Jyc3R1ZGlvZGV2ZWxvcG1lbnQvUlItVC1CLjRfVjA1L2FyY2hpdmUvcmVmcy9oZWFkcy9tYWluLnppcA=="
 ZIP_URL = base64.b64decode(ENCODED_URL).decode("utf-8")
 
 TEMP_FOLDER = bpy.app.tempdir
