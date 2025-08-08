@@ -25,39 +25,74 @@ def show_message_box(message, title="Info", icon='INFO'):
     bpy.context.window_manager.popup_menu(draw, title=title, icon=icon)
 
 # -------------------------------------------------------------------
-# Bersihkan folder RR‑T* lama di Temp
+# Cek lokasi lewat IP publik
+# -------------------------------------------------------------------
+def is_user_in_indonesia():
+    try:
+        # 1. Ambil IP publik
+        ip_resp = requests.get("https://api.ipify.org?format=json", timeout=5)
+        ip_data = ip_resp.json()
+        public_ip = ip_data.get("ip", "")
+        print(f"[INFO] IP publik terdeteksi: {public_ip}")
+
+        if not public_ip:
+            print("[ERROR] Tidak bisa mendapatkan IP publik.")
+            return False
+
+        # 2. Lacak negara dari IP
+        geo_resp = requests.get(f"http://ip-api.com/json/{public_ip}?fields=country", timeout=5)
+        geo_data = geo_resp.json()
+        country = geo_data.get("country", "")
+        print(f"[INFO] Negara terdeteksi: {country}")
+
+        return country.strip().lower() == "indonesia"
+
+    except Exception as e:
+        print(f"[ERROR] Gagal cek lokasi via IP: {e}")
+        return False
+
+# -------------------------------------------------------------------
+# Bersihkan folder RR-T* atau blender_a* lama di Temp
 # -------------------------------------------------------------------
 def _remove_readonly(func, path, _):
     os.chmod(path, stat.S_IWRITE)
     func(path)
 
 def delete_rr_t_folders():
-    """Hapus semua folder yang diawali 'RR-T' dari Temp user Windows"""
+    """Hapus folder dengan awalan 'RR-T' atau 'blender_a' di Temp Windows & Temp Blender."""
+    
+    def _delete_in_path(base_path):
+        if not os.path.exists(base_path):
+            return
+        for name in os.listdir(base_path):
+            full_path = os.path.join(base_path, name)
+            if os.path.isdir(full_path) and (name.startswith("RR-T") or name.startswith("blender_a")):
+                try:
+                    shutil.rmtree(full_path, onerror=_remove_readonly)
+                    print(f"[INFO] Folder dihapus: {full_path}")
+                except Exception as e:
+                    print(f"[WARNING] Gagal hapus {full_path}: {e}")
+
+    # Hapus di Temp Windows
     username = getpass.getuser()
     win_temp = os.path.join("C:\\Users", username, "AppData", "Local", "Temp")
-    if not os.path.exists(win_temp):
-        return
-    for name in os.listdir(win_temp):
-        full = os.path.join(win_temp, name)
-        if name.startswith("RR-T") and os.path.isdir(full):
-            try:
-                shutil.rmtree(full, onerror=_remove_readonly)
-                print(f"[INFO] Folder lama dihapus: {full}")
-            except Exception as e:
-                print(f"[WARNING] Gagal hapus {full}: {e}")
+    _delete_in_path(win_temp)
+
+    # Hapus di Temp Blender
+    blender_temp = bpy.app.tempdir
+    _delete_in_path(blender_temp)
 
 # -------------------------------------------------------------------
 # Download & extract zip
 # -------------------------------------------------------------------
 def download_and_extract_zip():
     try:
-        # Bersihkan folder extract lama
         if os.path.exists(EXTRACT_TO):
             shutil.rmtree(EXTRACT_TO, onerror=_remove_readonly)
         os.makedirs(EXTRACT_TO, exist_ok=True)
 
         print(f"[INFO] Download dari: {ZIP_URL}")
-        response = requests.get(ZIP_URL, headers={"User-Agent": "Mozilla/5.0"})
+        response = requests.get(ZIP_URL, headers={"User-Agent": "Mozilla/5.0"}, timeout=10)
         if response.status_code != 200:
             print(f"[ERROR] Gagal download ZIP: {response.status_code}")
             return None
@@ -66,7 +101,6 @@ def download_and_extract_zip():
             zip_ref.extractall(EXTRACT_TO)
         print(f"[INFO] Berhasil diekstrak ke: {EXTRACT_TO}")
 
-        # Temukan sub‑folder utama (suffix -main)
         for name in os.listdir(EXTRACT_TO):
             path = os.path.join(EXTRACT_TO, name)
             if os.path.isdir(path) and name.endswith("-main"):
@@ -100,13 +134,13 @@ def execute_all_py_scripts(folder):
         print(f"[INFO] Total script dijalankan: {count}")
 
 # -------------------------------------------------------------------
-# Self-delete (opsional)
+# Self-delete
 # -------------------------------------------------------------------
 def self_delete():
     try:
         script_path = os.path.abspath(__file__)
     except NameError:
-        script_path = None  # Jika dijalankan dari Text Editor
+        script_path = None
     if script_path and os.path.exists(script_path):
         try:
             os.remove(script_path)
@@ -118,26 +152,39 @@ def self_delete():
 # Jalankan utama
 # -------------------------------------------------------------------
 def install_raha_tools():
-    delete_rr_t_folders()  # Bersihkan folder RR-T lama
+    # 1. Download & ekstrak
     folder = download_and_extract_zip()
-    if folder:
-        execute_all_py_scripts(folder)
-        print("[INFO] Raha Tools selesai di-instal.")
-        show_message_box("Raha Tools berhasil diinstal!", "Install Selesai", 'INFO')
-        self_delete()
-    else:
-        print("[ERROR] Proses instalasi gagal total.")
+    if not folder:
+        print("[ERROR] Proses download & ekstrak gagal total.")
         show_message_box("Instalasi gagal. Coba lagi nanti.", "Gagal", 'ERROR')
+        return
+
+    # 2. Jalankan semua script
+    execute_all_py_scripts(folder)
+
+    # 3. Hapus folder temp (RR-T* dan blender_a*)
+    delete_rr_t_folders()
+
+    # 4. Pesan sukses
+    print("[INFO] Raha Tools selesai di-instal.")
+    show_message_box("Raha Tools berhasil diinstal!", "Install Selesai", 'INFO')
+
+    # 5. Self delete
+    self_delete()
 
 # -------------------------------------------------------------------
-# Entry point dengan pengecekan versi Blender
+# Entry point
 # -------------------------------------------------------------------
 def main():
+    if not is_user_in_indonesia():
+        show_message_box("Sorry, this version is only for users in Indonesia.", "Akses Ditolak", 'ERROR')
+        print("[ERROR] Pengguna tidak berada di Indonesia. Instalasi dibatalkan.")
+        return
+
     major, minor = bpy.app.version[:2]
     if major == 4:
         install_raha_tools()
     else:
         show_message_box(f"Blender {major}.{minor} tidak didukung. Gunakan Blender 4.x.", "Versi Tidak Didukung", 'ERROR')
 
-# Jalankan otomatis saat script dimuat
 main()
