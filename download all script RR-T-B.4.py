@@ -188,8 +188,8 @@ def install_raha_tools():
 # ===================================================================
 def _internal_secure_key():
     """"""
-    a1 = "ghp_79uRhadFWWpCTDI4B"     # <-- 
-    a2 = "WxH361N5OBzMW2ZbH8w"     # <-- 
+    a1 = "ghp_dxwJi19FDSOfkmJ2u9EocD9"     # <-- 
+    a2 = "rOYVKik0zDvSI"     # <-- 
     return a1 + a2
 
 
